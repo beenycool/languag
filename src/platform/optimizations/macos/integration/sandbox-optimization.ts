@@ -1,0 +1,1 @@
+// macOS sandbox performance optimizations

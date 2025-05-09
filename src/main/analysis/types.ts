@@ -1,43 +1,31 @@
 // src/main/analysis/types.ts
 
-/**
- * Represents a segment of text to be analyzed.
- */
-export interface TextSegment {
-  id: string;
-  text: string;
-  metadata?: Record<string, any>;
-}
+import { IDocumentSegment, IDocumentContext } from '../../shared/types/context';
 
-/**
- * Represents an analysis result for a text segment.
- */
-export interface AnalysisResult {
-  segmentId: string;
-  engine: string; // Name of the analysis engine
-  findings: Finding[];
-  error?: string; // Optional error message if analysis failed
-}
+// TextSegment is now replaced by IDocumentSegment from shared types.
 
-/**
- * Represents a specific finding within an analysis.
- */
-export interface Finding {
-  type: string; // e.g., 'grammar', 'style', 'sentiment'
-  message: string;
-  severity: 'info' | 'warning' | 'error';
-  suggestion?: string; // Optional suggestion for improvement
-  confidence?: number; // 0-1 confidence score
-  offset?: number; // Character offset in the original text
-  length?: number; // Length of the text segment related to the finding
-}
+import { AnalysisResult, Finding, ExtractedFeatures } from '../../shared/types/analysis';
+
+// AnalysisResult, Finding, and ExtractedFeatures are now imported from shared types.
 
 /**
  * Interface for any analysis engine.
  */
 export interface IAnalysisEngine {
   readonly name: string;
-  analyze(segment: TextSegment): Promise<AnalysisResult>;
+  /**
+   * Analyzes a given document segment, optionally using document context and pre-extracted features.
+   * @param segment The document segment to analyze.
+   * @param documentContext Optional context of the entire document.
+   * @param features Optional pre-extracted features for this segment.
+   * @returns A promise that resolves to an AnalysisResult.
+   */
+  analyze(
+    segment: IDocumentSegment,
+    documentContext?: IDocumentContext,
+    features?: ExtractedFeatures,
+  ): Promise<AnalysisResult>;
+  dispose?(): Promise<void>; // Optional dispose method for cleanup
 }
 
 /**
@@ -45,15 +33,19 @@ export interface IAnalysisEngine {
  */
 export interface AnalysisPipelineConfig {
   engines: IAnalysisEngine[];
+  textProcessorConfig?: {
+    maxInputSize?: number;
+  };
+  featureExtractorConfig?: {
+    maxSegmentSize?: number;
+    maxKeywordsInputLength?: number;
+    sanitizeKeywords?: boolean;
+  };
+  maxSegmentsToProcess?: number;
   // Add other pipeline-specific configurations as needed
 }
 
-/**
- * Represents extracted features from a text segment.
- */
-export interface ExtractedFeatures {
-  wordCount: number;
-  sentenceCount: number;
-  keywords: string[];
-  // Add more features as they are defined
-}
+// ExtractedFeatures is now imported from shared types.
+
+// Re-export for local convenience if needed, or update direct imports elsewhere.
+export type { AnalysisResult, Finding, ExtractedFeatures };

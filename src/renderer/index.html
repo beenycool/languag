@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinguaLens Core</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <h1>LinguaLens Application Shell</h1>
+    <p>Loading...</p>
+
+    <div id="settings-container">
+        <h2>Settings</h2>
+        <div>
+            <label for="analysis-engine-toggle">Enable Analysis Engine:</label>
+            <input type="checkbox" id="analysis-engine-toggle">
+        </div>
+        <div>
+            <label for="api-key-input">API Key:</label>
+            <input type="text" id="api-key-input" placeholder="Enter your API key">
+        </div>
+        <button id="save-settings-button">Save Settings</button>
+        <p id="settings-status"></p>
+    </div>
+
+    <hr>
+
+    <div>
+        <h2>Test IPC</h2>
+        <button id="ping-button">Send Ping to Main</button>
+        <p id="pong-response"></p>
+    </div>
+
+    <script type="module" src="renderer.js"></script>
+</body>
+</html>

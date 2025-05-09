@@ -1,0 +1,1 @@
+// macOS IPC performance optimizations

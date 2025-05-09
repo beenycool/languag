@@ -1,0 +1,1 @@
+// Windows COM interface optimizations

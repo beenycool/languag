@@ -1,0 +1,1 @@
+// Windows memory management optimizations

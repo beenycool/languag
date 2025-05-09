@@ -1,0 +1,1 @@
+// Placeholder for JetBrains plugin API integration

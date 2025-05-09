@@ -1,0 +1,1 @@
+// macOS App Nap management optimizations

@@ -60,6 +60,31 @@ export interface PersistenceConfig {
   autoSaveIntervalMs: number;
 }
 
+export interface AnalysisEngineSpecificConfig {
+  enabled: boolean;
+  // Add any engine-specific config options here, e.g.:
+  // sensitivity?: 'low' | 'medium' | 'high';
+}
+
+export interface AnalysisConfig {
+  engines?: {
+    grammar?: AnalysisEngineSpecificConfig;
+    style?: AnalysisEngineSpecificConfig;
+    // Add other engines here, e.g.:
+    // sentiment?: AnalysisEngineSpecificConfig;
+  };
+  textProcessor?: {
+    maxInputSize?: number;
+  };
+  featureExtractor?: {
+    maxSegmentSize?: number;
+    maxKeywordsInputLength?: number;
+    sanitizeKeywords?: boolean;
+  };
+  maxSegmentsToProcess?: number;
+  // Add other global analysis settings if needed
+}
+
 export interface AppConfig { // Renamed from SystemConfig
   version: string;
   logging: LoggingConfig; // Added logging config
@@ -68,6 +93,7 @@ export interface AppConfig { // Renamed from SystemConfig
   pipeline: PipelineConfig;
   resources: ResourceConfig;
   persistence: PersistenceConfig;
+  analysis?: AnalysisConfig; // Added AnalysisConfig
   llmCache?: LLMCacheConfig; // Added for LLM-specific caching
   // Add other system-wide settings as needed
 }
@@ -84,6 +110,7 @@ export interface LLMCacheConfig {
     ivLength?: number; // For algorithms like GCM
     authTagLength?: number; // For GCM
   };
+  semanticIndexMaxSize?: number; // Optional: Max number of entries in the semantic index
   // Add other cache-specific settings as needed
 }
 
@@ -183,7 +210,27 @@ export const DEFAULT_CONFIG: AppConfig = {
       algorithm: "aes-256-gcm",
       ivLength: 12, // Standard for GCM
       authTagLength: 16 // Standard for GCM
-    }
+    },
+    semanticIndexMaxSize: 10000 // Default max size for semantic index
+  },
+  analysis: { // Default analysis configuration
+    engines: {
+      grammar: {
+        enabled: true,
+      },
+      style: {
+        enabled: true,
+      },
+    },
+    textProcessor: {
+      maxInputSize: 1000000, // Default 1MB
+    },
+    featureExtractor: {
+      maxSegmentSize: 10000, // Default 10k chars
+      maxKeywordsInputLength: 5000, // Default 5k chars
+      sanitizeKeywords: true,
+    },
+    maxSegmentsToProcess: 100, // Default 100 segments
   },
   persistence: {
     storageType: "file",

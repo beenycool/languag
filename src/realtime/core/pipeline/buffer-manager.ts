@@ -1,0 +1,1 @@
+// Placeholder for buffer-manager.ts

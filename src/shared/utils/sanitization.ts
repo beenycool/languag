@@ -3,21 +3,22 @@
 
 /**
  * Regular expression to identify characters that need to be escaped in text.
- * This includes: <, >, &, ", ', `
+ * This includes: <, >, &, ", ', `, /
  */
-const SANITIZE_REGEX_TEXT = /[<>&"'`]/g;
+const SANITIZE_REGEX_TEXT = /[<>&"'`/]/g;
 
 /**
  * A map of characters to their corresponding HTML entity equivalents for sanitization.
  * Used to replace potentially harmful characters in text input and output.
  */
 const SANITIZE_MAP_TEXT: Record<string, string> = {
-  '<': '<',
-  '>': '>',
-  '&': '&',
-  '"': '"',
+  '<': '&lt;',
+  '>': '&gt;',
+  '&': '&amp;',
+  '"': '&quot;',
   '\u0027': '&#x27;', // Single quote (apostrophe)
-  '`': '&#x60;'  // Grave accent (backtick)
+  '`': '&#x60;',  // Grave accent (backtick)
+  '/': '&#x2F;'  // Forward slash
 };
 
 /**

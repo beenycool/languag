@@ -1,6 +1,8 @@
 // src/main/analysis/feature-extractor.ts
 
-import { TextSegment, ExtractedFeatures } from './types';
+import { IDocumentSegment, IDocumentContext } from '../../shared/types/context';
+import { ExtractedFeatures } from './types';
+import { sanitizeInput } from '../../shared/utils/sanitization';
 
 /**
  * The FeatureExtractor class is responsible for extracting
@@ -8,14 +10,39 @@ import { TextSegment, ExtractedFeatures } from './types';
  * by analysis engines or for metadata.
  */
 export class FeatureExtractor {
+  private readonly maxSegmentSize: number;
+  private readonly maxKeywordsInputLength: number;
+  private readonly sanitizeKeywords: boolean;
+
+  constructor(
+    maxSegmentSize: number = 10000, // Default to 10k chars
+    maxKeywordsInputLength: number = 5000, // Default to 5k chars for keyword extraction
+    sanitizeKeywords: boolean = true // Default to true
+  ) {
+    this.maxSegmentSize = maxSegmentSize;
+    this.maxKeywordsInputLength = maxKeywordsInputLength;
+    this.sanitizeKeywords = sanitizeKeywords;
+  }
+
   /**
    * Extracts a set of predefined features from a text segment.
    *
-   * @param segment The TextSegment to analyze.
+   * @param segment The IDocumentSegment to analyze.
+   * @param docContext Optional context of the entire document.
    * @returns An ExtractedFeatures object.
+   * @throws Error if segment.text exceeds the configured maxSegmentSize.
    */
-  extractFeatures(segment: TextSegment): ExtractedFeatures {
+  extractFeatures(segment: IDocumentSegment, docContext?: IDocumentContext): ExtractedFeatures {
+    if (segment.text.length > this.maxSegmentSize) {
+      throw new Error(
+        `Segment text size (${segment.text.length} characters) exceeds the configured limit of ${this.maxSegmentSize} characters.`
+      );
+    }
     const text = segment.text;
+
+    // docContext can be used here to influence feature extraction if needed.
+    // For example, language-specific stop words or analysis.
+    // if (docContext?.language === 'es') { /* use Spanish stop words */ }
 
     // Basic word count (splits by space and filters empty strings)
     const wordCount = text.split(/\s+/).filter(Boolean).length;
@@ -26,7 +53,7 @@ export class FeatureExtractor {
 
     // Basic keyword extraction (e.g., most frequent words, excluding common stop words)
     // This is a placeholder for a more sophisticated keyword extraction logic.
-    const keywords = this.extractKeywords(text);
+    const keywords = this.extractKeywords(text.substring(0, this.maxKeywordsInputLength));
 
     return {
       wordCount,
@@ -47,10 +74,16 @@ export class FeatureExtractor {
       return [];
     }
 
+    // Limit input string length for keyword extraction to prevent performance issues.
+    const processedText = text.length > this.maxKeywordsInputLength
+      ? text.substring(0, this.maxKeywordsInputLength)
+      : text;
+
+
     // Example: Convert to lowercase, split by non-alphanumeric, filter short words and common stop words.
     // This is highly simplistic.
     const commonStopWords = new Set(['the', 'a', 'is', 'in', 'it', 'of', 'and', 'to', 'for', 'on', 'with']);
-    const words = text
+    const words = processedText
       .toLowerCase()
       .split(/[^a-z0-9]+/)
       .filter(word => word.length > 2 && !commonStopWords.has(word));
@@ -62,10 +95,16 @@ export class FeatureExtractor {
     }
 
     // Sort by frequency and take top N (e.g., top 5)
-    const sortedKeywords = Object.entries(wordFrequencies)
+    let sortedKeywords = Object.entries(wordFrequencies)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([word]) => word);
+
+    if (this.sanitizeKeywords) {
+      sortedKeywords = sortedKeywords.map(keyword => sanitizeInput(keyword));
+      // Potentially exclude sensitive terms if a list is available
+      // For example: sortedKeywords = sortedKeywords.filter(kw => !isSensitive(kw));
+    }
 
     return sortedKeywords;
   }

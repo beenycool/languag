@@ -1,0 +1,1 @@
+// Windows registry access caching optimizations

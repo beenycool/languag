@@ -1,6 +1,7 @@
 // src/main/analysis/text-processor.ts
 
-import { TextSegment } from './types';
+import { IDocumentSegment, IDocumentContext } from '../../shared/types/context';
+import { ParagraphSegmenter, IParagraphSegmenterConfig } from './context/paragraph-segmenter';
 
 /**
  * The TextProcessor class is responsible for breaking down raw text
@@ -8,32 +9,40 @@ import { TextSegment } from './types';
  * initial cleaning or normalization if required.
  */
 export class TextProcessor {
+  private readonly maxInputSize: number;
+  private paragraphSegmenter: ParagraphSegmenter;
+
+  constructor(
+    maxInputSize: number = 1000000, // Default to 1MB
+    paragraphSegmenterConfig?: IParagraphSegmenterConfig
+  ) {
+    this.maxInputSize = maxInputSize;
+    this.paragraphSegmenter = new ParagraphSegmenter(paragraphSegmenterConfig);
+  }
+
   /**
    * Segments a given raw text into an array of TextSegment objects.
    * The segmentation strategy can be simple (e.g., by paragraph) or more complex.
    * For now, we'll assume a simple paragraph-based segmentation.
    *
    * @param rawText The raw text input.
-   * @param documentId An identifier for the document or source of the text.
-   * @returns An array of TextSegment objects.
+   * @param docContext The document context.
+   * @returns An array of IDocumentSegment objects.
+   * @throws Error if rawText exceeds the configured maxInputSize.
    */
-  segmentText(rawText: string, documentId: string): TextSegment[] {
-    if (!rawText || rawText.trim() === '') {
-      return [];
+  segmentText(rawText: string, docContext: IDocumentContext): IDocumentSegment[] {
+    if (rawText.length > this.maxInputSize) {
+      throw new Error(
+        `Input text size (${rawText.length} characters) exceeds the configured limit of ${this.maxInputSize} characters.`
+      );
     }
+    // ParagraphSegmenter handles empty text, so this check might be redundant
+    // if (!rawText || rawText.trim() === '') {
+    //   return [];
+    // }
 
-    // Simple segmentation by paragraphs (double line breaks)
-    // More sophisticated segmentation might be needed for different text types.
-    const paragraphs = rawText.split(/\n\s*\n/);
-
-    return paragraphs.map((paragraph, index) => ({
-      id: `${documentId}-p${index + 1}`,
-      text: paragraph.trim(),
-      metadata: {
-        documentId,
-        paragraphNumber: index + 1,
-      },
-    }));
+    // Delegate segmentation to ParagraphSegmenter
+    return this.paragraphSegmenter.segment(rawText, docContext);
   }
 
   /**
@@ -41,12 +50,17 @@ export class TextProcessor {
    * This could include removing extra whitespace, converting to a specific case, etc.
    * For now, it's a placeholder for potential future enhancements.
    *
-   * @param segment The TextSegment to clean.
-   * @returns The cleaned TextSegment.
+   * @param segment The IDocumentSegment to clean.
+   * @returns The cleaned IDocumentSegment.
    */
-  normalizeSegment(segment: TextSegment): TextSegment {
+  normalizeSegment(segment: IDocumentSegment): IDocumentSegment {
     // Placeholder for normalization logic
     // e.g., segment.text = segment.text.replace(/\s+/g, ' ').trim();
-    return segment;
+    // Ensure the context is preserved if it exists
+    const cleanedText = segment.text.replace(/\s+/g, ' ').trim();
+    return {
+      ...segment,
+      text: cleanedText,
+    };
   }
 }

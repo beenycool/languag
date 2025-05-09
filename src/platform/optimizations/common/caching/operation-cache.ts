@@ -1,0 +1,1 @@
+// Common operation result caching

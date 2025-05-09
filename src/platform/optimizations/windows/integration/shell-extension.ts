@@ -1,0 +1,1 @@
+// Windows shell extension optimizations
