@@ -1,0 +1,1 @@
+// Automatic scaling for containers
